@@ -1,0 +1,4 @@
+---
+- name: Cloudflare Docker
+  ansible.builtin.include_tasks: setup.yml
+  when: docker_cloudflared_token != ""

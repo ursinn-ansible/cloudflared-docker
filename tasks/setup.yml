@@ -1,0 +1,30 @@
+---
+- name: Ensure cloudflare/cloudflared image is pulled
+  community.docker.docker_image:
+    name: docker.io/cloudflare/cloudflared
+    source: pull
+    force_source: yes
+  register: pulled
+
+- name: Remove cloudflared container
+  community.docker.docker_container:
+    name: cloudflared
+    state: absent
+  when: pulled.changed
+
+- name: Get infos on cloudflared container
+  community.docker.docker_container_info:
+    name: cloudflared
+  register: result
+
+- name: Create cloudflared container
+  community.docker.docker_container:
+    command: tunnel --no-autoupdate run --token {{ docker_cloudflared_token }}
+    image: docker.io/cloudflare/cloudflared
+    name: cloudflared
+    networks:
+     - name: app-network
+    restart_policy: unless-stopped
+    state: started
+  when:
+    pulled.changed or result.exists == false
